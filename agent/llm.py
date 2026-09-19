@@ -6,12 +6,13 @@ and error handling for OpenAI Chat Completions API calls.
 
 import os
 from typing import Any
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
+except ImportError:
+    pass
 import openai
 from openai import OpenAI
-
-# Load variables from .env file if available
-load_dotenv()
 
 
 class LLMError(Exception):
