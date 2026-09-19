@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic Long-Horizon Memory Dashboard</title>
+  <meta name="description" content="Visual real-time dashboard and context inspector for Agentic Long-Horizon Memory.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Top Navbar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-icon">🧠</div>
+        <div>
+          <h1>Agentic Long-Horizon Memory</h1>
+          <p class="subtitle">Context Inspector & Interactive Execution Dashboard</p>
+        </div>
+      </div>
+      <div class="status-bar">
+        <div class="badge status-badge" id="system-status">
+          <span class="dot"></span> <span id="status-text">Connecting...</span>
+        </div>
+        <div class="badge model-badge" id="model-name">Model: gpt-4o-mini</div>
+      </div>
+    </header>
+
+    <!-- Main 3-Column Layout -->
+    <div class="main-layout">
+      <!-- Left Column: Sessions & Metrics -->
+      <aside class="sidebar-left">
+        <div class="panel-header">
+          <h2>Sessions</h2>
+          <button id="btn-new-session" class="btn-sm btn-primary" title="Start a fresh conversation session">+ New</button>
+        </div>
+
+        <div class="session-selector-card">
+          <label for="active-session-id">Active Session ID</label>
+          <div class="session-input-row">
+            <input type="text" id="active-session-id" value="session_default" placeholder="e.g. session_123">
+            <button id="btn-switch-session" class="btn-sm btn-secondary">Apply</button>
+          </div>
+        </div>
+
+        <div class="sessions-list" id="sessions-list">
+          <div class="session-item active">
+            <span class="session-icon">💬</span>
+            <div class="session-info">
+              <span class="session-title">session_default</span>
+              <span class="session-meta">Active now</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-header" style="margin-top: 1.5rem;">
+          <h2>Architecture Stats</h2>
+        </div>
+        <div class="stats-card">
+          <div class="stat-row">
+            <span class="stat-label">Context Stages</span>
+            <span class="stat-val">4 Layers</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Session Turns</span>
+            <span class="stat-val" id="stat-turns">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Storage Engine</span>
+            <span class="stat-val">SQLite + FAISS Ready</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Deduplication</span>
+            <span class="stat-val active-status">Enabled (1-copy guarantee)</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Middle Column: Chat Window -->
+      <main class="chat-section">
+        <div class="chat-header">
+          <div>
+            <h2 id="chat-title">Conversation Stream</h2>
+            <span class="chat-subtitle" id="chat-session-tag">Session: session_default</span>
+          </div>
+          <button id="btn-clear-chat" class="btn-sm btn-ghost" title="Clear local message view">Clear Screen</button>
+        </div>
+
+        <div class="messages-container" id="messages-container">
+          <div class="message-bubble system-welcome">
+            <div class="avatar">🤖</div>
+            <div class="bubble-content">
+              <strong>Agent Initialized</strong>
+              <p>Welcome to Agentic Long-Horizon Memory! Every message you send will be persistently saved, assembled into a 4-tier context window, and processed in real time. Try sending a message below.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="chat-input-wrapper">
+          <textarea id="chat-input" rows="1" placeholder="Type a message to the agent... (Press Enter to Send, Shift+Enter for newline)"></textarea>
+          <button id="btn-send" class="btn-send">
+            <span>Send</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
+      </main>
+
+      <!-- Right Column: Real-Time Context Inspector -->
+      <aside class="sidebar-right">
+        <div class="panel-header">
+          <h2>Context Inspector</h2>
+          <span class="badge badge-outline">Turn Assembly</span>
+        </div>
+        <p class="inspector-desc">Live payload structure sent to OpenAI Chat Completions:</p>
+
+        <div class="context-layers-container" id="context-layers">
+          <!-- Layer 1: System Instruction -->
+          <div class="context-card layer-system">
+            <div class="card-header">
+              <span class="stage-tag tag-system">1. System Prompt</span>
+              <span class="item-count">1 Item</span>
+            </div>
+            <div class="card-body" id="layer-system-content">
+              You are a helpful AI agent with long-horizon memory...
+            </div>
+          </div>
+
+          <!-- Layer 2: Retrieved Long-Term Memories -->
+          <div class="context-card layer-memory">
+            <div class="card-header">
+              <span class="stage-tag tag-memory">2. Retrieved Memories</span>
+              <span class="item-count" id="memories-count-badge">0 Items</span>
+            </div>
+            <div class="card-body" id="layer-memories-content">
+              <span class="empty-placeholder">No semantic memories retrieved for the last turn yet.</span>
+            </div>
+          </div>
+
+          <!-- Layer 3: Recent History Turns -->
+          <div class="context-card layer-recent">
+            <div class="card-header">
+              <span class="stage-tag tag-recent">3. Recent History Buffer</span>
+              <span class="item-count" id="recent-count-badge">0 Items</span>
+            </div>
+            <div class="card-body" id="layer-recent-content">
+              <span class="empty-placeholder">No prior conversation turns in context.</span>
+            </div>
+          </div>
+
+          <!-- Layer 4: Current User Prompt -->
+          <div class="context-card layer-user">
+            <div class="card-header">
+              <span class="stage-tag tag-user">4. Current User Prompt</span>
+              <span class="item-count">1 Item</span>
+            </div>
+            <div class="card-body" id="layer-user-content">
+              <span class="empty-placeholder">Awaiting user input...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Raw JSON Preview Accordion -->
+        <details class="json-preview-details">
+          <summary>Raw Assembled Payload JSON</summary>
+          <pre id="raw-json-viewer">[]</pre>
+        </details>
+      </aside>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
