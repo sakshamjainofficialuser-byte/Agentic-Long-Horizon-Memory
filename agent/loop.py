@@ -7,7 +7,7 @@ import sys
 import uuid
 from agent.context import build_context
 from agent.llm import LLMError, call_llm
-from memory.interface import save_message
+from memory.sqllite import save_message
 
 
 def run_agent(
