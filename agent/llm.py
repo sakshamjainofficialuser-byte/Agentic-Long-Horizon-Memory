@@ -6,12 +6,13 @@ and error handling for OpenAI Chat Completions API calls.
 
 import os
 from typing import Any
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
+except ImportError:
+    pass
 import openai
 from openai import OpenAI
-
-# Load variables from .env file if available
-load_dotenv()
 
 
 class LLMError(Exception):
@@ -56,7 +57,9 @@ def call_llm(messages: list[dict[str, str]]) -> str:
     LLMError
         If API connection fails, rate limits are exceeded, or an API error occurs.
     """
-    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
+    if not model or model.startswith("sk-"):
+        model = "gpt-4o-mini"
     client = _get_client()
 
     try:
