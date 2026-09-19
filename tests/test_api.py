@@ -1,10 +1,19 @@
-"""Unit tests for the FastAPI dashboard backend endpoints."""
-
 import pytest
-from fastapi.testclient import TestClient
-import api.app as api_module
-from api.app import app
+
+try:
+    from fastapi.testclient import TestClient
+    from api.app import app
+    import api.app as api_module
+    HAS_FASTAPI = True
+except ImportError:
+    HAS_FASTAPI = False
+    TestClient = None  # type: ignore
+    app = None  # type: ignore
+    api_module = None  # type: ignore
+
 from agent.llm import LLMError
+
+pytestmark = pytest.mark.skipif(not HAS_FASTAPI, reason="FastAPI or test dependencies not installed")
 
 
 @pytest.fixture
