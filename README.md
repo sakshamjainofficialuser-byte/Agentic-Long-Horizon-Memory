@@ -16,18 +16,10 @@ agentic-long-horizon-memory/
 ├── memory/
 │   ├── __init__.py      # Memory package exports
 │   └── interface.py     # Clean contract for SQLite & FAISS integration
-├── api/
-│   ├── __init__.py      # API package initialization
-│   ├── app.py           # FastAPI server & REST endpoints
-│   └── static/          # Visual Web Dashboard UI
-│       ├── index.html   # 3-column dashboard structure
-│       ├── style.css    # Modern dark theme & glassmorphism
-│       └── app.js       # Real-time context inspector client
 ├── tests/
 │   ├── __init__.py      # Tests package initialization
 │   ├── test_context.py  # Context assembly & ordering unit tests
-│   ├── test_loop.py     # Execution loop & LLM error handling tests
-│   └── test_api.py      # Dashboard API endpoint tests
+│   └── test_loop.py     # Execution loop & LLM error handling tests
 ├── .env.example         # Environment variable template
 ├── .gitignore           # Git ignore rules
 ├── requirements.txt     # Production and testing dependencies
@@ -43,8 +35,7 @@ agentic-long-horizon-memory/
   - Context assembly and message ordering (`agent/context.py`)
   - OpenAI LLM integration with safe error handling (`agent/llm.py`)
   - Command-line chat interface (`python -m agent.loop`)
-  - Visual Web Dashboard & API (`api/app.py`, `api/static/`)
-  - Full unit & integration test suite (`tests/`)
+  - Full unit test suite (`tests/`)
 - **Person 2 (Future Storage Implementation)**:
   - Persistent SQLite message storage (`save_message`, `get_recent_messages`)
   - Vector embeddings and FAISS retrieval index (`retrieve_relevant_memories`)
@@ -70,7 +61,7 @@ source .venv/bin/activate
 
 ### 3. Install Dependencies
 ```bash
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 4. Configure Environment Variables
@@ -87,22 +78,7 @@ OPENAI_MODEL=gpt-4o-mini
 
 ---
 
-## 🖥️ Launching the Visual Dashboard
-
-Start the FastAPI dashboard server:
-
-```bash
-python -m uvicorn api.app:app --host 127.0.0.1 --port 8000 --reload
-```
-
-Open your browser at **`http://127.0.0.1:8000`** to access:
-- **Live Agent Chat**: Real-time interaction with the agent.
-- **Context Inspector**: Visual inspection of the 4 assembled layers (System prompt, Retrieved memories, Recent turns, Current user prompt).
-- **Session Switcher**: Manage and isolate separate conversation sessions.
-
----
-
-## 🚀 Running the Terminal CLI
+## 🚀 Running the Interactive CLI
 
 Launch the interactive terminal chat:
 
@@ -124,7 +100,7 @@ Run the complete test suite with `pytest`:
 pytest -v
 ```
 
-All 18 unit and integration tests run deterministically with mocks and monkeypatching without making external API calls.
+All tests run deterministically with mocks and monkeypatching without making external API calls.
 
 ---
 

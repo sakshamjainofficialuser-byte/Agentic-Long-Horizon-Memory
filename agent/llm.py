@@ -58,7 +58,6 @@ def call_llm(messages: list[dict[str, str]]) -> str:
         If API connection fails, rate limits are exceeded, or an API error occurs.
     """
     model = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
-    # Safeguard against accidentally pasting an API key into the OPENAI_MODEL field
     if not model or model.startswith("sk-"):
         model = "gpt-4o-mini"
     client = _get_client()
