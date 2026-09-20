@@ -3,3 +3,6 @@ python-dotenv
 pytest
 faiss-cpu
 numpy
+fastapi
+uvicorn
+httpx
