@@ -164,10 +164,14 @@ def home_page() -> str:
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ message: text, session_id: sessionId })
         });
-        const data = await res.json();
-        loadingDiv.textContent = data.response || data.detail || 'No response';
+        const data = await res.json().catch(() => ({ detail: 'HTTP ' + res.status + ': ' + res.statusText }));
+        if (!res.ok) {
+          loadingDiv.textContent = '⚠️ ' + (data.detail || 'Request failed with status ' + res.status);
+        } else {
+          loadingDiv.textContent = data.response || 'No response generated';
+        }
       } catch(err) {
-        loadingDiv.textContent = 'Error: ' + err.message;
+        loadingDiv.textContent = '⚠️ Network Error: ' + err.message;
       }
       chatBox.scrollTop = chatBox.scrollHeight;
     }

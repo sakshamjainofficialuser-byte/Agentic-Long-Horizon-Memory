@@ -1,7 +1,6 @@
-"""SQLite persistent storage layer for conversation logs and sessions."""
-
 import os
 import sqlite3
+import tempfile
 from typing import TypedDict
 
 
@@ -10,7 +9,17 @@ class Message(TypedDict):
     content: str
 
 
-DEFAULT_DB_PATH = os.getenv("SQLITE_DB_PATH", "memory.db")
+def _get_default_db_path() -> str:
+    """Return configured database path or /tmp directory if in serverless environment."""
+    custom_path = os.getenv("SQLITE_DB_PATH")
+    if custom_path:
+        return custom_path
+    if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+        return os.path.join(tempfile.gettempdir(), "memory.db")
+    return "memory.db"
+
+
+DEFAULT_DB_PATH = _get_default_db_path()
 
 
 def get_db_connection(db_path: str = DEFAULT_DB_PATH) -> sqlite3.Connection:

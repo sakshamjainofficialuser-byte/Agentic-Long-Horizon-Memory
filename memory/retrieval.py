@@ -3,6 +3,7 @@
 import json
 import os
 from pathlib import Path
+import tempfile
 from typing import Any
 from dotenv import load_dotenv
 import faiss
@@ -14,8 +15,18 @@ load_dotenv()
 
 EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 EMBEDDING_DIM = 1536
-DEFAULT_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "faiss_index.bin")
-DEFAULT_META_PATH = os.getenv("FAISS_META_PATH", "faiss_meta.json")
+
+def _get_default_faiss_paths() -> tuple[str, str]:
+    custom_idx = os.getenv("FAISS_INDEX_PATH")
+    custom_meta = os.getenv("FAISS_META_PATH")
+    if custom_idx and custom_meta:
+        return custom_idx, custom_meta
+    if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+        tmp_dir = tempfile.gettempdir()
+        return os.path.join(tmp_dir, "faiss_index.bin"), os.path.join(tmp_dir, "faiss_meta.json")
+    return "faiss_index.bin", "faiss_meta.json"
+
+DEFAULT_INDEX_PATH, DEFAULT_META_PATH = _get_default_faiss_paths()
 
 
 def get_embedding(text: str) -> np.ndarray:
