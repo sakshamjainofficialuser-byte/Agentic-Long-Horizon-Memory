@@ -1,4 +1,8 @@
+"""Memory interface implementation connecting SQLite persistence and FAISS vector search."""
+
 from typing import TypedDict
+from memory.retrieval import get_memory_store
+from memory.storage import get_recent_messages_sqlite, save_message_sqlite
 
 
 class Message(TypedDict):
@@ -11,9 +15,7 @@ def save_message(
     role: str,
     content: str,
 ) -> None:
-    """Save a single conversation message to persistent storage.
-
-    To be implemented by Person 2 using SQLite.
+    """Save a single message to persistent SQLite storage and index into FAISS.
 
     Parameters
     ----------
@@ -24,16 +26,20 @@ def save_message(
     content : str
         The message content text.
     """
-    ...
+    # 1. Persist turn to SQLite
+    save_message_sqlite(session_id=session_id, role=role, content=content)
+
+    # 2. Index into FAISS for semantic recall
+    if role == "user" and content.strip():
+        store = get_memory_store()
+        store.add_memory(text=content.strip(), session_id=session_id)
 
 
 def get_recent_messages(
     session_id: str,
     limit: int = 10,
 ) -> list[Message]:
-    """Retrieve recent conversation messages for a session.
-
-    To be implemented by Person 2 using SQLite.
+    """Retrieve the most recent conversation messages from SQLite in chronological order.
 
     Parameters
     ----------
@@ -47,7 +53,7 @@ def get_recent_messages(
     list[Message]
         A chronological list of recent messages.
     """
-    ...
+    return get_recent_messages_sqlite(session_id=session_id, limit=limit)
 
 
 def retrieve_relevant_memories(
@@ -55,9 +61,7 @@ def retrieve_relevant_memories(
     session_id: str,
     limit: int = 5,
 ) -> list[str]:
-    """Retrieve relevant long-term memories using semantic vector search.
-
-    To be implemented by Person 2 using FAISS / Vector store.
+    """Retrieve relevant long-term memories using FAISS semantic vector search.
 
     Parameters
     ----------
@@ -73,4 +77,5 @@ def retrieve_relevant_memories(
     list[str]
         A list of relevant historical memory snippets.
     """
-    ...
+    store = get_memory_store()
+    return store.search(query=query, session_id=session_id, limit=limit)
